@@ -4,7 +4,7 @@
 [<internet,web> ]browser
   open xdg-open http://
   
-[google ]chome
+[google ]chrome
   open google-chrome
   
 [mozilla ]fire[ ]fox
