@@ -234,6 +234,9 @@ class InstallGUI:
         elif num == PLUGIN_PAGE and self.loadedPlugins == False:
             self.newPlugins = []
             output("Fetching plugins list...")   #could be a message in some status bar
+            #lispeak.bmandesigns.com is currently out
+            self.nextPage()
+            return
             plugins = urllib2.urlopen("http://lispeak.bmandesigns.com/functions.php?f=corePlugins").read().split("|#|")
             for p in plugins:
                 if p != "":
@@ -424,7 +427,7 @@ def setup():
     cd("Recognition")
     call("make")
     cd(installDir)
-    touch([home+"/.lispeak/UserInfo",root+"/plugins.db",root+"/plugins.dic",installDir+"/Recognition/modes/main.dic",root+"/MODE"])
+    touch([root+"/UserInfo",root+"/plugins.db",root+"/plugins.dic",installDir+"/Recognition/modes/main.dic",root+"/MODE"])
     copy([
         [installDir+"/Setup/defaults/bin/",      installDir+"/Recognition/bin/"],
         [installDir+"/Setup/languages/", root+"/configs/"]
@@ -607,6 +610,9 @@ def displayOSWarning():
     else:
         dialogPrompt(text="Your operating system could not be detected.\nLiSpeak may not work properly.\n\nDo you want to continue?",exit=True)
 def touch(path,out=True):   
+    """
+    touch one or more directories
+    """
     if type(path)==str:
         if not os.path.exists(os.path.dirname(path)):
             createDirectory(os.path.dirname(path))
@@ -698,6 +704,10 @@ def getSingleInfo(item,plugin="UserInfo"):
         return ""
     
 def copy(src,dst=""):
+    """
+    copy a single file or a directory tree,
+    and both arguments can be lists of such 
+    """
     if type(src) == str and dst != "":
         if type(dst) == str:
             if os.path.exists(dst):
@@ -718,6 +728,9 @@ def copy(src,dst=""):
         for c in src:
             copy(c,dst)
 def createDirectory(directory):
+    """
+    create one or more directories
+    """
     if type(directory) == str:
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -726,6 +739,9 @@ def createDirectory(directory):
         for d in directory:
             createDirectory(d)
 def delete(path):
+    """
+    delete a file, a folder, or a list of such
+    """
     if type(path) == str:
         if os.path.exists(path):
             if os.path.isdir(path):
@@ -769,6 +785,9 @@ def writeInfo(new,plugin="UserInfo",upper=True,t=True):
             info.write("\n"+str(each)+"="+str(d))
      
 def autostart(state):
+    """
+    Install/remove autostart at system startup
+    """
     if state:
         touch(home+"/.config/autostart/lispeak.desktop")
         with open(home+"/.config/autostart/lispeak.desktop","w") as f:
@@ -788,6 +807,9 @@ Categories=Application;\n""")
         delete(home+"/.config/autostart/lispeak.desktop")
         
 def continuous(state):
+    """
+    Install/remove continuous listening service
+    """
     if state:
         copy(installDir+"/Setup/continue.service",home+"/.lispeak/services/continue.service")
         writeSingleInfo("continue","True")
@@ -847,6 +869,9 @@ def getPluginData(path):
     return data
             
 def installPlugin(path):
+    """
+    Open dialog
+    """
     print "Recieved: "+path
     data = getPluginData(path)
     print "Data Gathered"
@@ -854,7 +879,7 @@ def installPlugin(path):
     popup.installPlugin = installPluginAction
     print "Starting"
     Gtk.main()
-            
+
 def installPluginAction(path,upgrading=False,parent=None):
     if path.endswith('.zip'):
         zfile = zipfile.ZipFile(path)
@@ -1204,6 +1229,16 @@ def get_resource_path(rel_path):
     rel_path_to_resource = os.path.join(dir_of_py_file, rel_path)
     abs_path_to_resource = os.path.abspath(rel_path_to_resource)
     return abs_path_to_resource
+def start():
+    """
+    Start daemon
+    """
+    os.system("./start")
+def stop():
+    """
+    Stop daemon
+    """
+    os.system("./stop")
     
 quiet = False
 debugMode = False
@@ -1224,7 +1259,10 @@ if __name__ == "__main__":
     from gi.repository import Gtk 
     parser = argparse.ArgumentParser(description=translate('LiSpeak - Linux Voice Command System'))
     parser.add_argument("--setup",dest='setup',action='store_true',default=False,help=translate('Setup LiSpeak'))
-    parser.add_argument("--autostart",metavar='state', type=bool,default="",help=translate('Setup LiSpeak'))
+    parser.add_argument("--start",dest='start',action='store_true',default=False,help=translate('Start daemons'))
+    parser.add_argument("--stop",dest='stop',action='store_true',default=False,help=translate('Stop daemons'))
+    parser.add_argument("--set-autostart",dest='autostart',action='store_true',default=False,help=translate('Enable autostart'))
+    parser.add_argument("--no-autostart",dest='no_autostart',action='store_true',default=False,help=translate('Disable autostart'))
     parser.add_argument('-i', metavar='file', type=str,help=translate('Install a plugin - plugin .sp or .tar.gz file'),default="")
     parser.add_argument('-r', metavar='plugin', type=str,help=translate('Remove the specified plugin'),default="")
     parser.add_argument('-p', metavar='name', type=str,help=translate('Install a plugin from the repo'),default="")
@@ -1241,7 +1279,7 @@ if __name__ == "__main__":
     force = args.force
     debug(args)
     something_done = False
-    if args.setup:
+    if args.setup or not os.path.isfile(root+"/UserInfo"):
         something_done = True
         setup()
     else:
@@ -1267,9 +1305,18 @@ if __name__ == "__main__":
     if args.d != "":
         something_done = True
         pluginInfo(args.p)
-    if args.autostart != "":
+    if args.autostart:
         something_done = True
-        autostart(args.autostart)
+        autostart(true)
+    if args.no_autostart:
+        something_done = True
+        autostart(false)
+    if args.start:
+        something_done = True
+        start()
+    if args.stop:
+        something_done = True
+        stop()
     if not something_done and not quiet:
         os.system("./lispeak --help");
 else:
