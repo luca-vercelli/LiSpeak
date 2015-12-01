@@ -550,9 +550,9 @@ def translate(text,lang=False):
                 touch(root+"/configs/Language-"+lang.lower(),False)
                 writeSingleInfo(text,rtext.replace("_END_",""),"Language-"+lang.lower(),False,False)
                 debug("Writing New Translation: "+text,False)
-        except:
+        except Exception, e:
             rtext = text
-            print("ERROR WRITING TRANSLATION")
+            print "ERROR WRITING TRANSLATION:", e
     x = 0
     for p in paths:
         rtext = rtext.replace("_PATH"+str(x)+"_",p)
