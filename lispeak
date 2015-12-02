@@ -234,9 +234,9 @@ class InstallGUI:
         elif num == PLUGIN_PAGE and self.loadedPlugins == False:
             self.newPlugins = []
             output("Fetching plugins list...")   #could be a message in some status bar
-            #lispeak.bmandesigns.com is currently out
-            self.nextPage()
-            return
+            #these 2 lines can be uncommented if lispeak.bmandesigns.com website is offline
+            #self.nextPage()
+            #return
             plugins = urllib2.urlopen("http://lispeak.bmandesigns.com/functions.php?f=corePlugins").read().split("|#|")
             for p in plugins:
                 if p != "":
@@ -1256,9 +1256,9 @@ except:
     gt = goslate.Goslate()
 
 if __name__ == "__main__": 
-    from gi.repository import Gtk 
+    from gi.repository import Gtk
     parser = argparse.ArgumentParser(description=translate('LiSpeak - Linux Voice Command System'))
-    parser.add_argument("--setup",dest='setup',action='store_true',default=False,help=translate('Setup LiSpeak'))
+    parser.add_argument("--setup",dest='setup',action='store_true',default=False,help=translate('Setup LiSpeak, deleting pre-existing info'))
     parser.add_argument("--start",dest='start',action='store_true',default=False,help=translate('Start daemons'))
     parser.add_argument("--stop",dest='stop',action='store_true',default=False,help=translate('Stop daemons'))
     parser.add_argument("--set-autostart",dest='autostart',action='store_true',default=False,help=translate('Enable autostart'))
